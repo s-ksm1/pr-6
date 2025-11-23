@@ -76,7 +76,6 @@ for d in "${DIRS[@]}"; do
     fi
 
     if [[ $DRYRUN -eq 1 ]]; then
-        #only list
         find "$d" -type f -mtime +"$DAYS" -print
     else
         if [[ $VERBOSE -eq 1 ]]; then
