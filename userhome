@@ -1,0 +1,64 @@
+#!/bin/bash
+
+show_help() {
+    echo "Usage: userhome [-f file] username"
+    echo "Options:"
+    echo "  -f FILE   Use custom passwd-like file"
+    echo "  --help    Show this help"
+    echo "  --usage   Show this help"
+}
+
+FILE="/etc/passwd"
+USERNAME=""
+
+# ---- Parse args ----
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -f)
+            if [[ -z "$2" ]]; then
+                echo "Error: -f requires a file argument" >&2
+                exit 2
+            fi
+            FILE="$2"
+            shift 2
+            ;;
+        --help|--usage)
+            show_help
+            exit 0
+            ;;
+        -*)
+            echo "Error: unknown option $1" >&2
+            show_help
+            exit 1
+            ;;
+        *)
+            USERNAME="$1"
+            shift
+            ;;
+    esac
+done
+
+# If username not provided -> current user
+if [[ -z "$USERNAME" ]]; then
+    USERNAME="$USER"
+fi
+
+# Check file exists
+if [[ ! -f "$FILE" ]]; then
+    echo "Error: file '$FILE' not found" >&2
+    exit 2
+fi
+
+# Search line with grep
+LINE=$(grep -E "^${USERNAME}:" "$FILE")
+
+if [[ -z "$LINE" ]]; then
+    echo "Error: user '$USERNAME' not found" >&2
+    exit 1
+fi
+
+# cut to extract 6th field (home directory)
+HOMEDIR=$(echo "$LINE" | cut -d: -f6)
+
+echo "$HOMEDIR"
+exit 0

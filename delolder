@@ -1,0 +1,92 @@
+#!/bin/bash
+
+show_help() {
+    echo "Usage: delolder [-v|-d] N [--] dirs..."
+    echo "Options:"
+    echo "  -v     Verbose: print deleted files"
+    echo "  -d     Dry run: only show files, do not delete"
+    echo "  --     Marks end of options"
+}
+
+VERBOSE=0
+DRYRUN=0
+END_OF_OPTIONS=0
+DAYS=""
+DIRS=()
+
+# ---- Parse args ---- 
+while [[ $# -gt 0 ]]; do
+    arg="$1"
+
+    if [[ $END_OF_OPTIONS -eq 1 ]]; then 
+        DIRS+=("$arg")
+        shift
+        continue
+    fi
+
+    case "$arg" in
+        -v)
+            VERBOSE=1
+            shift
+            ;;
+        -d)
+            DRYRUN=1
+            shift
+            ;;
+        --)
+            END_OF_OPTIONS=1
+            shift
+            ;;
+        -*)
+            echo "Error: unknown option $arg" >&2
+            exit 1
+            ;;
+        *)
+            if [[ -z "$DAYS" ]]; then
+                DAYS="$arg"
+            else
+                DIRS+=("$arg")
+            fi
+            shift
+            ;;
+
+    esac
+done
+
+
+# ---- Validate ----
+if [[ -z "$DAYS" ]]; then
+    echo "Error: number of days required" >&2
+    show_help
+    exit 1
+fi
+
+if ! [[ "$DAYS" =~ ^[0-9]+$ ]]; then
+    echo "Error: N must be a number" >&2
+    exit 1
+fi
+
+if [[ ${#DIRS[@]} -eq 0 ]]; then
+    echo "Error: no directories provided" >&2
+    exit 1
+fi
+
+#- ----Process directories ----
+for d in "${DIRS[@]}"; do
+    if [[ ! -d "$d" ]]; then
+        echo "Warning: '$d' is not a directory, skipping" >&2
+        continue
+    fi
+
+    if [[ $DRYRUN -eq 1 ]]; then
+        #only list
+        find "$d" -type f -mtime +"$DAYS" -print
+    else
+        if [[ $VERBOSE -eq 1 ]]; then
+            find "$d" -type f -mtime +"$DAYS" -print -delete
+        else
+            find "$d" -type f -mtime +"$DAYS" -delete
+        fi
+    fi
+done
+
