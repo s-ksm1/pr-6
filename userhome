@@ -11,7 +11,7 @@ show_help() {
 FILE="/etc/passwd"
 USERNAME=""
 
-# ---- Parse args ----
+#Parse args 
 while [[ $# -gt 0 ]]; do
     case "$1" in
         -f)
@@ -38,18 +38,15 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# If username not provided -> current user
 if [[ -z "$USERNAME" ]]; then
     USERNAME="$USER"
 fi
 
-# Check file exists
 if [[ ! -f "$FILE" ]]; then
     echo "Error: file '$FILE' not found" >&2
     exit 2
 fi
 
-# Search line with grep
 LINE=$(grep -E "^${USERNAME}:" "$FILE")
 
 if [[ -z "$LINE" ]]; then
@@ -57,7 +54,6 @@ if [[ -z "$LINE" ]]; then
     exit 1
 fi
 
-# cut to extract 6th field (home directory)
 HOMEDIR=$(echo "$LINE" | cut -d: -f6)
 
 echo "$HOMEDIR"
