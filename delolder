@@ -1,5 +1,3 @@
-#!/bin/bash
-
 show_help() {
     echo "Usage: delolder [-v|-d] N [--] dirs..."
     echo "Options:"
